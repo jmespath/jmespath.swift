@@ -1,5 +1,3 @@
-import Foundation  // required for JSONSerialization
-
 public protocol JMESPropertyWrapper {
     var anyValue: Any { get }
 }
@@ -108,37 +106,35 @@ enum JMESVariable {
 
     /// JSON output from variable
     public func json() -> String? {
+        guard let value = self.jsonEncoderValue else { return nil }
+        var writer = JSONWriter(options: [])
+        do {
+            try writer.serializeJSON(value)
+            let value = String(decoding: writer.bytes, as: UTF8.self)
+            return value
+        } catch {
+            return nil
+        }
+    }
+
+    var jsonEncoderValue: JSONEncoderValue? {
         switch self {
         case .string(let string):
-            return string
+            JSONEncoderValue.string(string)
         case .number(let number):
-            return String(describing: number.collapse())
+            JSONEncoderValue.number(number.description)
         case .boolean(let bool):
-            return String(describing: bool)
+            JSONEncoderValue.bool(bool)
         case .array(let array):
-            guard
-                let jsonData = try? JSONSerialization.data(
-                    withJSONObject: array,
-                    options: [.fragmentsAllowed]
-                )
-            else {
-                return nil
-            }
-            return String(decoding: jsonData, as: Unicode.UTF8.self)
+            JSONEncoderValue.array(array.compactMap { JMESVariable(from: $0).jsonEncoderValue })
         case .object(let object):
-            guard
-                let jsonData = try? JSONSerialization.data(
-                    withJSONObject: object,
-                    options: [.fragmentsAllowed]
-                )
-            else {
-                return nil
-            }
-            return String(decoding: jsonData, as: Unicode.UTF8.self)
-        case .other(let any):
-            return String(describing: any)
+            JSONEncoderValue.object(object.compactMapValues { JMESVariable(from: $0).jsonEncoderValue })
+        case .other:
+            nil
+        case .null:
+            .null
         default:
-            return nil
+            nil
         }
     }
 
@@ -252,7 +248,7 @@ enum JMESVariable {
         return first.value
     }
 
-    fileprivate static var nsNumberBoolType = type(of: NSNumber(value: true))
+    fileprivate static var nsNumberBoolType = Bool.self  //type(of: NSNumber(value: true))
 }
 
 extension JMESVariable: Equatable {
