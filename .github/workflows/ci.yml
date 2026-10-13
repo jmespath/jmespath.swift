@@ -36,6 +36,8 @@ jobs:
     container:
       image: ${{ matrix.tag }}
     steps:
+    - name: Install curl
+      run: apt-get update -yq && apt-get install -y curl
     - name: Checkout
       uses: actions/checkout@v7.0.1
       with:
