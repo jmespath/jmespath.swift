@@ -186,8 +186,14 @@ extension JMESNumber {
 extension JMESNumber: CustomStringConvertible {
     public var description: String {
         switch value {
-        case .int(let int): int.description
-        case .double(let double): double.description
+        case .int(let int):
+            return int.description
+        case .double(let double):
+            var string = double.description
+            if string.hasSuffix(".0") {
+                string.removeLast(2)
+            }
+            return string
         }
     }
 }
