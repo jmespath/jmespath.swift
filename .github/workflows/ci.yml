@@ -12,10 +12,10 @@ on:
 
 jobs:
   macos:
-    runs-on: macOS-14
+    runs-on: macOS-26
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7.0.1
       with:
         fetch-depth: 1
     - name: SPM tests
@@ -43,7 +43,7 @@ jobs:
       image: ${{ matrix.tag }}
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v7.0.1
       with:
         fetch-depth: 1
     - name: Test
@@ -62,9 +62,9 @@ jobs:
   windows:
     runs-on: windows-latest
     steps:
-      - uses: compnerd/gha-setup-swift@main
+      - uses: compnerd/gha-setup-swift@v0.5.0
         with:
-          branch: swift-6.1-release
-          tag: 6.1-RELEASE
-      - uses: actions/checkout@v4
+          branch: swift-6.3-release
+          tag: 6.3-RELEASE
+      - uses: actions/checkout@v7.0.1
       - run: swift test
