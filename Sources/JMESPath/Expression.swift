@@ -26,12 +26,9 @@ public struct JMESExpression: Sendable {
     ///   - runtime: JMES runtime (includes functions)
     /// - Throws: JMESPathError
     /// - Returns: Search result
-    public func search<Value>(json: String, as: Value.Type = Value.self, runtime: JMESRuntime = .init()) throws -> Value {
+    public func search<Value>(json: String, as: Value.Type = Value.self, runtime: JMESRuntime = .init()) throws -> Value? {
         let searchResult = try self.search(json: json, runtime: runtime)
-        guard let value = searchResult as? Value else {
-            throw JMESPathError.runtime("Expected \(Value.self)) but got a \(type(of: searchResult))")
-        }
-        return value
+        return searchResult as? Value
     }
 
     /// Search JSON
@@ -42,12 +39,9 @@ public struct JMESExpression: Sendable {
     ///   - runtime: JMES runtime (includes functions)
     /// - Throws: JMESPathError
     /// - Returns: Search result
-    public func search<Value>(json: some ContiguousBytes, as: Value.Type = Value.self, runtime: JMESRuntime = .init()) throws -> Value {
+    public func search<Value>(json: some ContiguousBytes, as: Value.Type = Value.self, runtime: JMESRuntime = .init()) throws -> Value? {
         let searchResult = try self.search(json: json, runtime: runtime)
-        guard let value = searchResult as? Value else {
-            throw JMESPathError.runtime("Expected \(Value.self)) but got a \(type(of: searchResult))")
-        }
-        return value
+        return searchResult as? Value
     }
 
     /// Search Swift type
@@ -58,12 +52,9 @@ public struct JMESExpression: Sendable {
     ///   - runtime: JMES runtime (includes functions)
     /// - Throws: JMESPathError
     /// - Returns: Search result
-    public func search<Value>(object: Any, as: Value.Type = Value.self, runtime: JMESRuntime = .init()) throws -> Value {
+    public func search<Value>(object: Any, as: Value.Type = Value.self, runtime: JMESRuntime = .init()) throws -> Value? {
         let searchResult = try self.search(object: object, runtime: runtime)
-        guard let value = searchResult as? Value else {
-            throw JMESPathError.runtime("Expected \(Value.self)) but got a \(type(of: searchResult))")
-        }
-        return value
+        return searchResult as? Value
     }
 
     /// Search JSON
