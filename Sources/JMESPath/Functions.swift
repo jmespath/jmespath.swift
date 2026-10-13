@@ -116,7 +116,7 @@ extension JMESVariable {
 /// let expression = try Expression.compile(myExpression)
 /// let result = try expression.search(json: myJson, runtime: runtime)
 /// ```
-protocol JMESFunction {
+protocol JMESFunction: Sendable {
     /// function signature
     static var signature: FunctionSignature { get }
     /// Evaluate function
@@ -683,7 +683,7 @@ struct ToNumberFunction: JMESFunction {
             return .number(number)
         case .string(let string):
             do {
-                return try JMESVariable.fromJson(string)
+                return try JMESVariable.parse(json: string)
             } catch {
                 return .null
             }

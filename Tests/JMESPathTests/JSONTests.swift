@@ -40,4 +40,37 @@ final class JSONTests: XCTestCase {
         let json = #"{"sub": {"a": "hello"}}"#
         self.testInterpreter("sub.a", json: json, result: "hello")
     }
+
+    func testWriteNumber() {
+        let value = 1
+        let json = JMESVariable(from: value).json()
+        XCTAssertEqual(json, "1")
+    }
+
+    func testWriteString() {
+        let value = "Hello"
+        let json = JMESVariable(from: value).json()
+        XCTAssertEqual(json, "\"Hello\"")
+    }
+
+    func testWriteBoolean() {
+        let value = false
+        let json = JMESVariable(from: value).json()
+        XCTAssertEqual(json, "false")
+    }
+
+    func testWriteArray() {
+        let value = [1, 36, 5]
+        let json = JMESVariable(from: value).json()
+        XCTAssertEqual(json, "[1,36,5]")
+    }
+
+    func testWriteDictionary() {
+        struct Values {
+            let i: Int
+            let s: String
+        }
+        let json = JMESVariable(from: Values(i: 23, s: "word")).json()
+        XCTAssert(json == #"{"i":23,"s":"word"}"# || json == #"{"s":"word","i":23}"#)
+    }
 }

@@ -3,6 +3,7 @@ extension UInt8 {
     internal static var _return: UInt8 { UInt8(ascii: "\r") }
     internal static var _newline: UInt8 { UInt8(ascii: "\n") }
     internal static var _tab: UInt8 { UInt8(ascii: "\t") }
+    internal static var _slash: UInt8 { UInt8(ascii: "/") }
 
     internal static var _colon: UInt8 { UInt8(ascii: ":") }
     internal static let _semicolon = UInt8(ascii: ";")

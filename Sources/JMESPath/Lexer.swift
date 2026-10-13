@@ -150,27 +150,28 @@ internal class Lexer {
 
     private func readQuotedIdentifier() throws -> String {
         let string = try readInside()
-        let variable = try JMESVariable.fromJson("\"\(string)\"")
+        let variable = try JMESVariable.parse(json: "\"\(string)\"")
         guard case .string(let string2) = variable else { preconditionFailure() }
         return string2
     }
 
     private func readRawString() throws -> JMESVariable {
         let string = try self.readInside()
-        return .string(string.replacingOccurrences(of: "\\'", with: "'"))
+        let unescaped = string._replacing("\\'", with: "'")
+        return .string(unescaped)
     }
 
     private func readLiteral() throws -> JMESVariable {
         let string = try readInside()
         do {
-            let unescaped = string.replacingOccurrences(of: "\\`", with: "`")
-            return try JMESVariable.fromJson(unescaped)
+            let unescaped = string._replacing("\\`", with: "`")
+            return try JMESVariable.parse(json: unescaped)
         } catch {
             throw JMESPathError.compileTime("Unable to parse literal JSON")
         }
     }
 
-    private func readInside() throws -> String {
+    private func readInside() throws -> Substring {
         let wrapper = self.current()
         self.next()
         let start = self.index
@@ -179,7 +180,7 @@ internal class Lexer {
             switch c {
             case wrapper:
                 let buffer = self.text[start..<self.index]
-                return String(buffer)
+                return buffer
             case "\\":
                 self.next()
                 guard !self.reachedEnd() else { throw JMESPathError.compileTime("Unclosed \(wrapper) delimiter") }
@@ -215,5 +216,19 @@ internal class Lexer {
 
     private func reachedEnd() -> Bool {
         self.index == self.text.endIndex
+    }
+}
+
+extension Substring {
+    func _replacing<C: StringProtocol>(_ original: C, with string: String) -> String {
+        #if os(macOS) || os(iOS) || os(tvOS) || os(watchOS) || os(visionOS)
+        if #available(macOS 13, iOS 18, tvOS 18, watchOS 9, *) {
+            return .init(self.replacing(original, with: string))
+        } else {
+            return self.replacingOccurrences(of: original, with: string)
+        }
+        #else
+        return .init(self.replacing(original, with: string))
+        #endif
     }
 }

@@ -74,8 +74,8 @@ public struct JMESExpression: Sendable {
     /// - Throws: JMESPathError
     /// - Returns: Search result
     public func search(json: String, runtime: JMESRuntime = .init()) throws -> Any? {
-        let value = try JMESJSON.parse(json: json)
-        return try runtime.interpret(JMESVariable(from: value), ast: self.ast).collapse()
+        let value = try JMESVariable.parse(json: json)
+        return try runtime.interpret(value, ast: self.ast).collapse()
     }
 
     /// Search JSON
@@ -86,8 +86,8 @@ public struct JMESExpression: Sendable {
     /// - Throws: JMESPathError
     /// - Returns: Search result
     public func search(json: some ContiguousBytes, runtime: JMESRuntime = .init()) throws -> Any? {
-        let value = try JMESJSON.parse(json: json)
-        return try runtime.interpret(JMESVariable(from: value), ast: self.ast).collapse()
+        let value = try JMESVariable.parse(json: json)
+        return try runtime.interpret(value, ast: self.ast).collapse()
     }
 
     /// Search Swift type

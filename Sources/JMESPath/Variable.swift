@@ -1,5 +1,3 @@
-import Foundation  // required for JSONSerialization
-
 public protocol JMESPropertyWrapper {
     var anyValue: Any { get }
 }
@@ -87,11 +85,6 @@ enum JMESVariable {
         }
     }
 
-    /// create JMESVariable from json
-    public static func fromJson(_ json: String) throws -> Self {
-        try JMESVariable(from: JMESJSON.parse(json: json))
-    }
-
     /// Collapse JMESVariable back to its equivalent Swift type
     public func collapse() -> Any? {
         switch self {
@@ -103,42 +96,6 @@ enum JMESVariable {
         case .object(let map): return map
         case .other(let any): return any
         case .expRef: return nil
-        }
-    }
-
-    /// JSON output from variable
-    public func json() -> String? {
-        switch self {
-        case .string(let string):
-            return string
-        case .number(let number):
-            return String(describing: number.collapse())
-        case .boolean(let bool):
-            return String(describing: bool)
-        case .array(let array):
-            guard
-                let jsonData = try? JSONSerialization.data(
-                    withJSONObject: array,
-                    options: [.fragmentsAllowed]
-                )
-            else {
-                return nil
-            }
-            return String(decoding: jsonData, as: Unicode.UTF8.self)
-        case .object(let object):
-            guard
-                let jsonData = try? JSONSerialization.data(
-                    withJSONObject: object,
-                    options: [.fragmentsAllowed]
-                )
-            else {
-                return nil
-            }
-            return String(decoding: jsonData, as: Unicode.UTF8.self)
-        case .other(let any):
-            return String(describing: any)
-        default:
-            return nil
         }
     }
 
@@ -251,8 +208,6 @@ enum JMESVariable {
         guard let first = mirror.children.first else { return nil }
         return first.value
     }
-
-    fileprivate static var nsNumberBoolType = type(of: NSNumber(value: true))
 }
 
 extension JMESVariable: Equatable {
