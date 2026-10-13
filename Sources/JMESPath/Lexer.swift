@@ -150,7 +150,7 @@ internal class Lexer {
 
     private func readQuotedIdentifier() throws -> String {
         let string = try readInside()
-        let variable = try JMESVariable.fromJson("\"\(string)\"")
+        let variable = try JMESVariable.parse(json: "\"\(string)\"")
         guard case .string(let string2) = variable else { preconditionFailure() }
         return string2
     }
@@ -164,7 +164,7 @@ internal class Lexer {
         let string = try readInside()
         do {
             let unescaped = string.replacingOccurrences(of: "\\`", with: "`")
-            return try JMESVariable.fromJson(unescaped)
+            return try JMESVariable.parse(json: unescaped)
         } catch {
             throw JMESPathError.compileTime("Unable to parse literal JSON")
         }

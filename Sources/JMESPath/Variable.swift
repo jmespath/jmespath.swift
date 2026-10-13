@@ -85,11 +85,6 @@ enum JMESVariable {
         }
     }
 
-    /// create JMESVariable from json
-    public static func fromJson(_ json: String) throws -> Self {
-        try JMESVariable(from: JMESJSON.parse(json: json))
-    }
-
     /// Collapse JMESVariable back to its equivalent Swift type
     public func collapse() -> Any? {
         switch self {
@@ -101,40 +96,6 @@ enum JMESVariable {
         case .object(let map): return map
         case .other(let any): return any
         case .expRef: return nil
-        }
-    }
-
-    /// JSON output from variable
-    public func json() -> String? {
-        guard let value = self.jsonEncoderValue else { return nil }
-        var writer = JSONWriter(options: [])
-        do {
-            try writer.serializeJSON(value)
-            let value = String(decoding: writer.bytes, as: UTF8.self)
-            return value
-        } catch {
-            return nil
-        }
-    }
-
-    var jsonEncoderValue: JSONEncoderValue? {
-        switch self {
-        case .string(let string):
-            JSONEncoderValue.string(string)
-        case .number(let number):
-            JSONEncoderValue.number(number.description)
-        case .boolean(let bool):
-            JSONEncoderValue.bool(bool)
-        case .array(let array):
-            JSONEncoderValue.array(array.compactMap { JMESVariable(from: $0).jsonEncoderValue })
-        case .object(let object):
-            JSONEncoderValue.object(object.compactMapValues { JMESVariable(from: $0).jsonEncoderValue })
-        case .other:
-            nil
-        case .null:
-            .null
-        default:
-            nil
         }
     }
 

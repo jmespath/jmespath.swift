@@ -4,56 +4,30 @@ import FoundationEssentials
 import Foundation
 #endif
 
-/// Namespace to wrap JSON parsing code
-enum JMESJSON {
-    ///  Parse JSON into object
-    /// - Parameter json: json string
-    /// - Returns: object
-    static func parse(json: String) throws -> Any {
+extension JMESVariable {
+    static func parse(json: String) throws -> Self {
         try json.withBufferView { view in
             var scanner = JSONScanner(bytes: view, options: .init())
             let map = try scanner.scan()
             guard let value = map.loadValue(at: 0) else { throw JMESPathError.runtime("Empty JSON file") }
-            return try JMESJSONVariable(value: value).getValue(map)
+            return try JMESVariable(from: parse(value, map: map))
         }
     }
 
     ///  Parse JSON into object
     /// - Parameter json: json string
     /// - Returns: object
-    static func parse(json: some ContiguousBytes) throws -> Any {
+    static func parse(json: some ContiguousBytes) throws -> Self {
         try json.withBufferView { view in
             var scanner = JSONScanner(bytes: view, options: .init())
             let map = try scanner.scan()
             guard let value = map.loadValue(at: 0) else { throw JMESPathError.runtime("Empty JSON file") }
-            return try JMESJSONVariable(value: value).getValue(map)
+            return try JMESVariable(from: parse(value, map: map))
         }
     }
 
-}
-
-struct JMESJSONVariable {
-    let value: JSONMap.Value
-    init(value: JSONMap.Value) {
-        self.value = value
-    }
-
-    init?(json: String) throws {
-        guard
-            let variable = try json.withBufferView({ view -> JMESJSONVariable? in
-                var scanner = JSONScanner(bytes: view, options: .init())
-                let map = try scanner.scan()
-                guard let value = map.loadValue(at: 0) else { return nil }
-                return JMESJSONVariable(value: value)
-            })
-        else { return nil }
-        self = variable
-    }
-}
-
-extension JMESJSONVariable {
-    func getValue(_ map: JSONMap) throws -> Any {
-        switch self.value {
+    static func parse(_ jsonValue: JSONMap.Value, map: JSONMap) throws -> Any {
+        switch jsonValue {
         case .string(let region, let isSimple):
             return try map.withBuffer(for: region) { stringBuffer, fullSource in
                 if isSimple {
@@ -104,15 +78,15 @@ extension JMESJSONVariable {
             }
 
         case .array(let region):
-            var entries = [JMESJSONVariable]()
+            var entries = [Any]()
             var iterator = map.makeArrayIterator(from: region.startOffset)
             while let value = iterator.next() {
-                entries.append(.init(value: value))
+                try entries.append(Self.parse(value, map: map))
             }
-            return try entries.map { try $0.getValue(map) }
+            return entries
 
         case .object(let region):
-            var entries = [String: JMESJSONVariable]()
+            var entries = [String: Any]()
             var iterator = map.makeObjectIterator(from: region.startOffset)
             while let value = iterator.next() {
                 guard case .string(let region, let isSimple) = value.key else {
@@ -129,9 +103,46 @@ extension JMESJSONVariable {
                     }
                     return try JSONScanner.stringValue(from: stringBuffer, fullSource: fullSource)
                 }
-                entries[key] = .init(value: value.value)
+                entries[key] = try Self.parse(value.value, map: map)
             }
-            return try entries.mapValues { try $0.getValue(map) }
+            return entries
         }
+    }
+
+    /// JSON output from variable
+    public func json() -> String? {
+        guard let value = JSONEncoderValue(from: self) else { return nil }
+        var writer = JSONWriter(options: [])
+        do {
+            try writer.serializeJSON(value)
+            let value = String(decoding: writer.bytes, as: UTF8.self)
+            return value
+        } catch {
+            return nil
+        }
+    }
+}
+
+extension JSONEncoderValue {
+    init?(from variable: JMESVariable) {
+        switch variable {
+        case .string(let string):
+            self = .string(string)
+        case .number(let number):
+            self = .number(number.description)
+        case .boolean(let bool):
+            self = .bool(bool)
+        case .array(let array):
+            self = .array(array.compactMap { JSONEncoderValue(from: JMESVariable(from: $0)) })
+        case .object(let object):
+            self = .object(object.compactMapValues { JSONEncoderValue(from: JMESVariable(from: $0)) })
+        case .other:
+            return nil
+        case .null:
+            self = .null
+        default:
+            return nil
+        }
+
     }
 }

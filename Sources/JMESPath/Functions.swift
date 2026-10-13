@@ -683,7 +683,7 @@ struct ToNumberFunction: JMESFunction {
             return .number(number)
         case .string(let string):
             do {
-                return try JMESVariable.fromJson(string)
+                return try JMESVariable.parse(json: string)
             } catch {
                 return .null
             }
