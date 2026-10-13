@@ -208,8 +208,6 @@ enum JMESVariable {
         guard let first = mirror.children.first else { return nil }
         return first.value
     }
-
-    fileprivate static var nsNumberBoolType = Bool.self  //type(of: NSNumber(value: true))
 }
 
 extension JMESVariable: Equatable {

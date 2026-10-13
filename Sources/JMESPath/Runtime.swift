@@ -20,7 +20,7 @@ public class JMESRuntime {
     }
 
     private var functions: [String: JMESFunction.Type]
-    private static var builtInFunctions: [String: JMESFunction.Type] = [
+    private static let builtInFunctions: [String: JMESFunction.Type] = [
         "abs": AbsFunction.self,
         "avg": AvgFunction.self,
         "ceil": CeilFunction.self,

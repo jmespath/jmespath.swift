@@ -157,13 +157,24 @@ internal class Lexer {
 
     private func readRawString() throws -> JMESVariable {
         let string = try self.readInside()
-        return .string(string.replacingOccurrences(of: "\\'", with: "'"))
+        let unescaped =
+            if #available(macOS 13, iOS 18, tvOS 18, watchOS 9, *) {
+                string.replacing("\\`", with: "`")
+            } else {
+                string.replacingOccurrences(of: "\\`", with: "`")
+            }
+        return .string(unescaped)
     }
 
     private func readLiteral() throws -> JMESVariable {
         let string = try readInside()
         do {
-            let unescaped = string.replacingOccurrences(of: "\\`", with: "`")
+            let unescaped =
+                if #available(macOS 13, iOS 18, tvOS 18, watchOS 9, *) {
+                    string.replacing("\\`", with: "`")
+                } else {
+                    string.replacingOccurrences(of: "\\`", with: "`")
+                }
             return try JMESVariable.parse(json: unescaped)
         } catch {
             throw JMESPathError.compileTime("Unable to parse literal JSON")
