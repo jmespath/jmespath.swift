@@ -79,7 +79,7 @@ final class MirrorTests: XCTestCase {
             let e: TestEnum
         }
         let test = TestObject(e: .test2)
-        self.testInterpreter("e", data: test, result: TestEnum.test2)
+        self.testInterpreter("e", data: test, result: "test2")
     }
 
     func testCustomReflectableArray() {

@@ -43,6 +43,8 @@ enum JMESVariable {
             self = .null
         case let variable as JMESVariable:
             self = variable
+        case let raw as (any RawRepresentable):
+            self = JMESVariable(from: raw.rawValue)
         default:
             // use Mirror to build JMESVariable.object
             let mirror = Mirror(reflecting: any)
